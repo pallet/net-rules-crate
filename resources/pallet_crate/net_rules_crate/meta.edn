@@ -1,0 +1,11 @@
+{:header "net-rules"
+ :title
+ "A [pallet](http://palletops.com/) crate to install and configure
+ [net-rules](http://nodejs.org)."
+ :git-repo "https://github.com/pallet/net-rules-crate"
+ :api-docs "http://palletops.com/net-rules-crate/0.8/api"
+ :annotated-docs "http://palletops.com/net-rules-crate/0.8/annotated/uberdoc.html"
+ :tag-prefix ""
+ :artifact-id "net-rules-crate"
+ :source-path "src/pallet/crate/net-rules.clj"
+ :versions [{:pallet "0.8.0-RC.3" :version "0.8.0-SNAPSHOT"}]}
