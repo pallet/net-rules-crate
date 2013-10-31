@@ -1,0 +1,101 @@
+<html lang="en">
+  <head>
+    <title>pallet.crate.net-rules documentation</title>
+    <link href="css/default.css" type="text/css" rel="stylesheet" />
+    <link href="css/codox-md.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/page_effects.js"></script>
+  </head>
+  <body>
+    <header>
+    <div data-scrollspy="scrollspy" class="topbar">
+      <div class="topbar-inner">
+        <div class="container">
+          <a href="/" class="brand">Pallet</a>
+          <ul class="nav">
+            <li class=""><a href="/doc">Documentation</a></li>
+            <li class=""><a href="/news">News</a></li>
+            <li class=""><a href="/blog">Blog</a></li>
+            <li class=""><a href="https://github.com/pallet/pallet">Code</a></li>
+            <li class=""><a href="/services">Services</a></li>
+            <li class=""><a href="/support">Support</a></li>
+            <li class=""><a href="/contact">Contact</a></li>
+          </ul>
+          <form action="http://www.google.com/search" method="get" class="pull-right">
+            <input placeholder="Search" value="" maxlength="255" name="q" type="text" />
+            <input value="palletops.com" type="hidden" name="sitesearch" />
+          </form>
+        </div>
+      </div>
+    </div>
+      <div id="header">
+        <h1><a href="http://palletops.com"><span class="project-title">Net-rules-crate 0.8.0-SNAPSHOT API documentation</span></a></h1>
+      </div>
+    </header>
+    <navigation>
+      <div id="namespaces" class="sidebar">
+        <h3>Namespaces</h3>
+        <ul class="ns-links">
+          <li class="ns-list"><a class="ns-link ns-name" href="pallet.crate.net-rules.html">pallet.crate.net-rules</a></li><li class="ns-list"><a class="ns-link ns-name" href="pallet.crate.net-rules.aws-ec2.html">pallet.crate.net-rules.aws-ec2</a></li>
+        </ul>
+      </div>
+      <div id="vars" class="sidebar">
+        <h3>Public Vars</h3>
+        <ul class="ns-var-links">
+          <li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.crate.net-rules.html#var-permit-group">permit-group</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.crate.net-rules.html#var-permit-role">permit-role</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.crate.net-rules.html#var-permit-source">permit-source</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.crate.net-rules.html#var-server-spec">server-spec</a></li><li class="ns-var-list"><a class="ns-var-link ns-var-name" href="pallet.crate.net-rules.html#var-settings">settings</a></li>
+        </ul>
+      </div>
+    </navigation>
+    <article>
+      <div id="content" class="namespace-docs">
+        <h2 class="namespace-title">pallet.crate.net-rules documentation</h2>
+        <div class="doc"><p>Control network port access</p>
+</div>
+        <div class="ns-vars">
+          <div class="public">
+            <h3><a id="var-permit-group" class="source var-name" href="https://github.com/pallet/net-rules-crate/blob/develop/src/pallet/crate/net_rules.clj#L89">permit-group</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[group port {:keys [instance-id protocol], :or {protocol :tcp}, :as options}]</div>
+            
+            
+            <div class="doc"><p>Grant a group permission to access a port</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-permit-role" class="source var-name" href="https://github.com/pallet/net-rules-crate/blob/develop/src/pallet/crate/net_rules.clj#L96">permit-role</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[role port {:keys [instance-id protocol], :or {protocol :tcp}, :as options}]</div>
+            
+            
+            <div class="doc"><p>Grant a role permission to access a port</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-permit-source" class="source var-name" href="https://github.com/pallet/net-rules-crate/blob/develop/src/pallet/crate/net_rules.clj#L103">permit-source</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[cidr port {:keys [instance-id protocol], :or {protocol :tcp}, :as options}]</div>
+            
+            
+            <div class="doc"><p>Grant an ips source range permission to access a port</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-server-spec" class="source var-name" href="https://github.com/pallet/net-rules-crate/blob/develop/src/pallet/crate/net_rules.clj#L111">server-spec</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[{:keys [instance-id], :as settings}]</div>
+            
+            
+            <div class="doc"><p>Returns a service-spec for controlling network port access.</p>
+</div>
+          </div><div class="public">
+            <h3><a id="var-settings" class="source var-name" href="https://github.com/pallet/net-rules-crate/blob/develop/src/pallet/crate/net_rules.clj#L25">settings</a></h3>
+            <h4 class="var-type fn" id="var-type">fn</h4>
+            <div class="usage">[{:keys [instance-id], :as settings}]</div>
+            
+            
+            <div class="doc"><p>Capture settings for nodejs</p>
+</div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </body>
+
+</html>
