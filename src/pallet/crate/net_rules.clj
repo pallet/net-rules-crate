@@ -74,6 +74,7 @@
   (warnf (str "No net-rules net-rules applied.")))
 
 (defplan configure
+  "Write net-rules configuration for a node."
   [{:keys [instance-id] :as options}]
   (let [{:keys [implementation allow]} (get-settings facility options)]
     (configure-net-rules implementation allow)))
@@ -101,7 +102,7 @@
           (select-keys options [:instance-id])))
 
 (defplan permit-source
-  "Grant an ips source range permission to access a port"
+  "Grant an IP source range permission to access a port"
   [cidr port {:keys [instance-id protocol] :or {protocol :tcp} :as options}]
   {:pre [(string? cidr) (or (keyword? protocol) (number? protocol))]}
   (permit {:cidr cidr :port port :protocol protocol}
