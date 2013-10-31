@@ -3091,7 +3091,7 @@ net.brehaut.ClojureTools = (function (SH) {
   (fn [impl permissions] impl))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod configure-net-rules :default
   [impl settings]
-  (warnf (str &quot;No net-rules net-rules applied.&quot;)))</pre></td></tr><tr><td class="docs">
+  (warnf (str &quot;No net-rules net-rules applied.&quot;)))</pre></td></tr><tr><td class="docs"><p>Write net-rules configuration for a node.</p>
 </td><td class="codes"><pre class="brush: clojure">(defplan configure
   [{:keys [instance-id] :as options}]
   (let [{:keys [implementation allow]} (get-settings facility options)]
@@ -3111,7 +3111,7 @@ net.brehaut.ClojureTools = (function (SH) {
   [role port {:keys [instance-id protocol] :or {protocol :tcp} :as options}]
   {:pre [(keyword? role) (or (keyword? protocol) (number? protocol))]}
   (permit {:role role :port port :protocol protocol}
-          (select-keys options [:instance-id])))</pre></td></tr><tr><td class="docs"><p>Grant an ips source range permission to access a port</p>
+          (select-keys options [:instance-id])))</pre></td></tr><tr><td class="docs"><p>Grant an IP source range permission to access a port</p>
 </td><td class="codes"><pre class="brush: clojure">(defplan permit-source
   [cidr port {:keys [instance-id protocol] :or {protocol :tcp} :as options}]
   {:pre [(string? cidr) (or (keyword? protocol) (number? protocol))]}
