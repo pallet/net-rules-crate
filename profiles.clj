@@ -1,8 +1,8 @@
 {:dev
- {:dependencies [[com.palletops/pallet "0.8.0-RC.4" :classifier "tests"]
+ {:dependencies [[com.palletops/pallet "0.8.0-RC.7" :classifier "tests"]
                  [com.palletops/crates "0.1.1"]
                  [ch.qos.logback/logback-classic "1.0.9"]
-                 [org.cloudhoist/pallet-jclouds "1.5.2"]
+                 [com.palletops/pallet-jclouds "1.5.3"]
                  [org.jclouds/jclouds-compute "1.5.5"]
                  [org.jclouds.provider/aws-ec2 "1.5.5"]]
   :plugins [[com.palletops/pallet-lein "0.8.0-alpha.1"]

@@ -2,7 +2,7 @@
  "Implementation of net-rules for ec2"
  (:require
   [clojure.tools.logging :refer [debugf]]
-  [pallet.crate :refer [group-name nodes-in-group nodes-with-role target]]
+  [pallet.crate :refer [group-name targets-in-group targets-with-role target]]
   [pallet.crate.net-rules :refer [configure-net-rules install-net-rules]]
   [pallet.node :as node]
   [org.jclouds.ec2.security-group2 :as sg2]
@@ -52,6 +52,6 @@
        cidr (authorize compute sg-name port :protocol protocol
                        :ip-range cidr :region region)
        group (authorize-targets compute sg-name region permission
-                                (nodes-in-group group))
+                                (targets-in-group group))
        role (authorize-targets compute sg-name region permission
-                               (nodes-with-role role))))))
+                               (targets-with-role role))))))
