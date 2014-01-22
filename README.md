@@ -30,11 +30,11 @@ A [pallet](http://palletops.com/) crate to install and configure
   </tr>
   <tr>
     <th>0.8.0-RC.4</th>
-    <td>0.8.0-alpha.1</td>
+    <td>0.8.0-alpha.2</td>
     <td>clojars</td>
     <td>com.palletops</td>
-    <td><a href='https://github.com/pallet/net-rules-crate/blob/0.8.0-alpha.1/ReleaseNotes.md'>Release Notes</a></td>
-    <td><a href='https://github.com/pallet/net-rules-crate/blob/0.8.0-alpha.1/'>Source</a></td>
+    <td><a href='https://github.com/pallet/net-rules-crate/blob/0.8.0-alpha.2/ReleaseNotes.md'>Release Notes</a></td>
+    <td><a href='https://github.com/pallet/net-rules-crate/blob/0.8.0-alpha.2/'>Source</a></td>
   </tr>
 </tbody>
 </table>
