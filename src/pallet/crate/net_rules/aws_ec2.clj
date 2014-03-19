@@ -1,12 +1,13 @@
 (ns pallet.crate.net-rules.aws-ec2
- "Implementation of net-rules for ec2"
+  "Implementation of net-rules for ec2.  You will need a dependency on
+pallet-jclouds 1.7.0 or greater to use this namespace."
  (:require
   [clojure.tools.logging :refer [debugf]]
   [pallet.crate :refer [group-name targets-in-group targets-with-role target]]
   [pallet.crate.net-rules :refer [configure-net-rules install-net-rules]]
   [pallet.node :as node]
-  [org.jclouds.ec2.security-group2 :as sg2]
-  [org.jclouds.ec2.ebs2 :as ebs]))
+  [com.palletops.jclouds.ec2.security-group2 :as sg2]
+  [com.palletops.jclouds.ec2.core :refer [get-region]]))
 
 (defmethod install-net-rules :aws-ec2
   [_ _])
@@ -15,7 +16,7 @@
   (str "jclouds#" (name group)))
 
 (defn target-region []
-  (ebs/get-region (:node (target))))
+  (get-region (:node (target))))
 
 (defn compute-service []
   (node/compute-service (:node (target))))

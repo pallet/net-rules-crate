@@ -8,5 +8,5 @@
  :tag-prefix ""
  :artifact-id "net-rules-crate"
  :source-path "src/pallet/crate/net-rules.clj"
- :versions [{:pallet "0.8.0-RC.7" :version "0.8.0-alpha.7"}
+ :versions [{:pallet "0.8.0-RC.7" :version "0.8.0-alpha.3"}
             {:pallet "0.8.0-RC.4" :version "0.8.0-alpha.1"}]}
