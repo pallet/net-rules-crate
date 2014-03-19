@@ -1,10 +1,9 @@
-{:dev
+{:provided
+ {:dependencies [[com.palletops/pallet-jclouds "1.7.0-alpha.2"]]}
+ :dev
  {:dependencies [[com.palletops/pallet "0.8.0-RC.7" :classifier "tests"]
                  [com.palletops/crates "0.1.1"]
-                 [ch.qos.logback/logback-classic "1.0.9"]
-                 [com.palletops/pallet-jclouds "1.5.3"]
-                 [org.jclouds/jclouds-compute "1.5.5"]
-                 [org.jclouds.provider/aws-ec2 "1.5.5"]]
+                 [ch.qos.logback/logback-classic "1.0.9"]]
   :plugins [[com.palletops/pallet-lein "0.8.0-alpha.1"]
             [com.palletops/lein-pallet-crate "0.1.0"]
             [lein-set-version "0.3.0"]
