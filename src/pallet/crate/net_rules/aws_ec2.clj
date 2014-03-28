@@ -1,6 +1,7 @@
 (ns pallet.crate.net-rules.aws-ec2
-  "Implementation of net-rules for ec2.  You will need a dependency on
-pallet-jclouds 1.7.0 or greater to use this namespace."
+  "Implementation of net-rules for the jclouds ec2 provider.  You will
+need a dependency on pallet-jclouds 1.7.0 or greater to use this
+namespace."
  (:require
   [clojure.tools.logging :refer [debugf]]
   [pallet.crate :refer [group-name targets-in-group targets-with-role target]]
