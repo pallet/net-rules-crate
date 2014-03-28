@@ -9,10 +9,13 @@
                  [ch.qos.logback/logback-classic "1.0.9"]]
   :plugins [[com.palletops/pallet-lein "0.8.0-alpha.1"]
             [com.palletops/lein-pallet-crate "0.1.0"]
-            [lein-set-version "0.3.0"]
             [lein-resource "0.3.2"]
             [codox/codox.leiningen "0.6.4"]
-            [lein-marginalia "0.7.1"]]
+            [lein-marginalia "0.7.1"]
+            [lein-pallet-release "0.1.3"]]
+  :pallet-release
+  {:url "https://pbors:${GH_TOKEN}@github.com/pallet/net-rules-crate.git"
+   :branch "master"}
   :aliases {"live-test-up"
             ["pallet" "up"
              ;; "--phases" "install,configure,test"
@@ -25,6 +28,7 @@
                    :all (constantly true)}
   :checkout-deps-shares ^:replace [:source-paths :test-paths
                                    :compile-path]}
+ :no-checkouts {:checkout-deps-shares ^{:replace true} []}
  :doc {:dependencies [[com.palletops/pallet-codox "0.1.0"]]
        :plugins [[codox/codox.leiningen "0.6.4"]
                  [lein-marginalia "0.7.1"]]
