@@ -17,7 +17,8 @@
    [pallet.utils :refer [apply-map deep-merge]]
    [pallet.version-dispatch
     :refer [defmethod-version-plan defmulti-version-plan]]
-   [pallet.versions :refer [version-string as-version-vector]]))
+   [pallet.versions :refer [version-string as-version-vector]]
+   [schema.core :as schema]))
 
 (def facility ::net-rules)
 
@@ -80,9 +81,20 @@
     (configure-net-rules implementation allow)))
 
 ;;; # Network rules
+(def PermissionBase
+  {:port schema/Int
+   :protocol schema/Keyword})
+
+(def GroupPermission (assoc PermissionBase :group schema/Keyword))
+(def RolePermission (assoc PermissionBase :role schema/Keyword))
+(def CidrPermission (assoc PermissionBase :cidr schema/Str))
+
+(def Permission
+  (schema/either GroupPermission RolePermission CidrPermission))
+
 (defn permit
   [permission {:keys [instance-id] :as options}]
-  {:pre [(map? permission)]}
+  {:pre [(schema/validate Permission permission)]}
   (update-settings facility (select-keys options [:instance-id])
                    update-in [:allow] (comp vec distinct (fnil conj []))
                    permission))
@@ -90,7 +102,9 @@
 (defplan permit-group
   "Grant a group permission to access a port"
   [group port {:keys [instance-id protocol] :or {protocol :tcp} :as options}]
-  {:pre [(keyword? group) (or (keyword? protocol) (number? protocol))]}
+  {:pre [(keyword? group)
+         (or (keyword? protocol) (number? protocol))
+         (or (nil? options) (map? options))]}
   (permit {:group group :port port :protocol protocol}
           (select-keys options [:instance-id])))
 
@@ -118,4 +132,5 @@
             :install (plan-fn
                       (install {:instance-id instance-id}))
             :configure (plan-fn
-                        (configure {:instance-id instance-id}))}))
+                           (configure {:instance-id instance-id}))}
+   :default-phases [:install :configure]))
