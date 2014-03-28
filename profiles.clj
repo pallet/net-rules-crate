@@ -1,7 +1,10 @@
 {:provided
- {:dependencies [[com.palletops/pallet-jclouds "1.7.0-alpha.2"]]}
+ {:dependencies [[com.palletops/pallet-jclouds "1.7.0-alpha.2"]
+                 [com.palletops/pallet-aws "0.2.1"]
+                 [org.slf4j/jcl-over-slf4j "1.7.5"]]}
  :dev
- {:dependencies [[com.palletops/pallet "0.8.0-RC.7" :classifier "tests"]
+ {:dependencies [[org.clojure/clojure "1.5.1"]
+                 [com.palletops/pallet "0.8.0-RC.9" :classifier "tests"]
                  [com.palletops/crates "0.1.1"]
                  [ch.qos.logback/logback-classic "1.0.9"]]
   :plugins [[com.palletops/pallet-lein "0.8.0-alpha.1"]
@@ -39,4 +42,6 @@
                           [org.apache.jclouds.driver/jclouds-slf4j "1.7.1"
                            :exclusions [org.slf4j/slf4j-api]]
                           [org.apache.jclouds.driver/jclouds-sshj "1.7.1"]]}
+ :pallet-aws {:dependencies [[com.palletops/pallet-aws "0.2.1"]
+                             [org.slf4j/jcl-over-slf4j "1.7.5"]]}
  :vmfest {:dependencies [[com.palletops/pallet-vmfest "0.3.0-beta.2"]]}}

@@ -78,6 +78,14 @@
     <appender-ref ref="PALLETFILE" />
   </logger>
 
+  <logger name="com.palletops" level="TRACE">
+    <appender-ref ref="PALLETFILE" />
+  </logger>
+
+  <logger name="aws" level="TRACE">
+    <appender-ref ref="PALLETFILE" />
+  </logger>
+
   <logger name="vmfest" level="TRACE">
     <appender-ref ref="VMFESTFILE" />
   </logger>

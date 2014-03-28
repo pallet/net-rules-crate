@@ -2,7 +2,8 @@
 
 The net-rules crate provides a mechanism to control network port
 access.  The implementation varies by provider (by default).
-Currently there is only an implementation for AWS EC2 via jclouds.
+Currently there are implementations for AWS EC2 via jclouds and the
+pallet-aws provider.
 
 The net-rules crate provides a `server-spec` function that returns a
 server-spec. This server spec will install anything necessary and

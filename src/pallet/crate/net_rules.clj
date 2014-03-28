@@ -102,7 +102,9 @@
 (defplan permit-group
   "Grant a group permission to access a port"
   [group port {:keys [instance-id protocol] :or {protocol :tcp} :as options}]
-  {:pre [(keyword? group) (or (keyword? protocol) (number? protocol))]}
+  {:pre [(keyword? group)
+         (or (keyword? protocol) (number? protocol))
+         (or (nil? options) (map? options))]}
   (permit {:group group :port port :protocol protocol}
           (select-keys options [:instance-id])))
 
