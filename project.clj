@@ -1,6 +1,6 @@
 (defproject com.palletops/net-rules-crate "0.8.0-SNAPSHOT"
   :description "Crate for controlling network port access"
-  :url "http://github.com/pallet/node-js-crate"
+  :url "http://github.com/pallet/net-rules-crate"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.4.0"]
