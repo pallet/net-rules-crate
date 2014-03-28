@@ -33,10 +33,10 @@
  :release
  {:set-version
   {:updates [{:path "README.md" :no-snapshot true}]}}
- :jclouds {:dependencies [[org.cloudhoist/pallet-jclouds "1.5.2"]
-                          [org.jclouds/jclouds-allblobstore "1.5.5"]
-                          [org.jclouds/jclouds-allcompute "1.5.5"]
-                          [org.jclouds.driver/jclouds-slf4j "1.5.5"
+ :jclouds {:dependencies [[com.palletops/pallet-jclouds "1.7.0-alpha.2"]
+                          [org.apache.jclouds/jclouds-allblobstore "1.7.1"]
+                          [org.apache.jclouds/jclouds-allcompute "1.7.1"]
+                          [org.apache.jclouds.driver/jclouds-slf4j "1.7.1"
                            :exclusions [org.slf4j/slf4j-api]]
-                          [org.jclouds.driver/jclouds-sshj "1.5.5"]]}
+                          [org.apache.jclouds.driver/jclouds-sshj "1.7.1"]]}
  :vmfest {:dependencies [[com.palletops/pallet-vmfest "0.3.0-beta.2"]]}}
