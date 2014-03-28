@@ -132,4 +132,5 @@
             :install (plan-fn
                       (install {:instance-id instance-id}))
             :configure (plan-fn
-                        (configure {:instance-id instance-id}))}))
+                           (configure {:instance-id instance-id}))}
+   :default-phases [:install :configure]))
