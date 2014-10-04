@@ -1,3 +1,9 @@
+## 0.8.0-alpha.5
+
+- Update pallet-ec2 backend to work with VPC
+  Uses security group ids, rather than names, so that it works, in EC@
+  classic, default VPC, and non-default VPC.
+
 ## 0.8.0-alpha.4
 
 - Add :default-phases to server-spec
