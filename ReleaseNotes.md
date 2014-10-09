@@ -1,3 +1,7 @@
+## 0.8.0-alpha.6
+
+- Ignore duplicate rule exceptions in pallet-ec2
+
 ## 0.8.0-alpha.5
 
 - Update pallet-ec2 backend to work with VPC
