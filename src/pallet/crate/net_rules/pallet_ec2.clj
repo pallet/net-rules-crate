@@ -2,13 +2,14 @@
   "Implementation of net-rules for pallet-ec2 provider.  You will need
 a dependency on pallet-aws 0.2.0 or greater to use this
 namespace."
- (:require
-  [clojure.tools.logging :refer [debugf]]
-  [com.palletops.awaze.ec2 :as ec2]
-  [pallet.compute.ec2 :as pallet-ec2]
-  [pallet.crate :refer [group-name targets-in-group targets-with-role target]]
-  [pallet.crate.net-rules :refer [configure-net-rules install-net-rules]]
-  [pallet.node :as node]))
+  (:require
+   [clojure.stacktrace :refer [root-cause]]
+   [clojure.tools.logging :refer [debugf]]
+   [com.palletops.awaze.ec2 :as ec2]
+   [pallet.compute.ec2 :as pallet-ec2]
+   [pallet.crate :refer [group-name targets-in-group targets-with-role target]]
+   [pallet.crate.net-rules :refer [configure-net-rules install-net-rules]]
+   [pallet.node :as node]))
 
 (defmethod install-net-rules :pallet-ec2
   [_ _])
@@ -52,9 +53,18 @@ namespace."
                         :ip-protocol (name protocol)
                         :ip-ranges [ip-range]}]})
     (catch Exception e
-      (if (re-find #"has already been authorized" (.getMessage e))
-        (debugf "Already authorized")
-        (throw e)))))
+      (let [c (or (root-cause e) e)]
+        (if (and (instance? com.amazonaws.AmazonServiceException c)
+                 (= (.getErrorCode ^com.amazonaws.AmazonServiceException c)
+                    "InvalidPermission.Duplicate"))
+          (debugf "Already authorized")
+          (throw (ex-info (format
+                           "Failed to configure net-rules: %s %s"
+                           (type c)
+                           (try (bean c) (catch Exception _)))
+                          {:type (type c)
+                           :bean (try (bean c) (catch Exception _))}
+                          e)))))))
 
 (defn authorize-targets
   "Authorize a port to a sequence of nodes"
@@ -74,9 +84,13 @@ namespace."
                                   :ip-protocol (name protocol)
                                   :ip-ranges [ip-range]}]})]
         (debugf "authorize-targets %s" r))
-      (catch com.amazonaws.AmazonServiceException e
-        (debugf e "Auth ingress failed")
-        (throw e)))))
+      (catch Exception e
+        (let [c (root-cause e)]
+          (if (and (instance? com.amazonaws.AmazonServiceException c)
+                   (= (.getErrorCode ^com.amazonaws.AmazonServiceException c)
+                      "InvalidPermission.Duplicate"))
+            (debugf "Already authorized")
+            (ex-info "Failed to configure net-rules" {} e)))))))
 
 (defmethod configure-net-rules :pallet-ec2
   [_ permissions]
