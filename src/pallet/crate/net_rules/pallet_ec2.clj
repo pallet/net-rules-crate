@@ -90,7 +90,7 @@ namespace."
                    (= (.getErrorCode ^com.amazonaws.AmazonServiceException c)
                       "InvalidPermission.Duplicate"))
             (debugf "Already authorized")
-            (ex-info "Failed to configure net-rules" {} e)))))))
+            (throw (ex-info "Failed to configure net-rules" {} e))))))))
 
 (defmethod configure-net-rules :pallet-ec2
   [_ permissions]
