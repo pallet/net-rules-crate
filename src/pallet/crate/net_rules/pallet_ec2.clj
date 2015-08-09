@@ -4,7 +4,7 @@ a dependency on pallet-aws 0.2.0 or greater to use this
 namespace."
   (:require
    [clojure.stacktrace :refer [root-cause]]
-   [clojure.tools.logging :refer [debugf]]
+   [clojure.tools.logging :refer [debugf tracef]]
    [com.palletops.awaze.ec2 :as ec2]
    [pallet.compute.ec2 :as pallet-ec2]
    [pallet.crate :refer [group-name targets-in-group targets-with-role target]]
@@ -23,7 +23,7 @@ namespace."
 (defn compute-service []
   (node/compute-service (:node (target))))
 
-(defn sg-id-for [compute vpc-id sg-name]
+(defn sg-info [compute vpc-id sg-name]
   (let [filters [{:name "group-name" :values [sg-name]}]
         filters (if vpc-id
                   (conj filters {:name "vpc-id" :values [vpc-id]})
@@ -37,21 +37,24 @@ namespace."
                                       (= sg-name (:group-name %))))
                             first)]
     (debugf "sg-id-for %s %s %s" vpc-id sg-name (pr-str security-groups))
-    (:group-id matching-group)))
+    {:group-id (:group-id matching-group)
+     :ip-permissions
+     (->> (:ip-permissions matching-group)
+          (filter :ip-ranges)
+          (mapv #(select-keys
+                 % [:to-port :from-port :ip-protocol :ip-ranges])))}))
 
 (defn authorize
   "Authorize a cidr"
-  [compute sg-id port & {:keys [protocol ip-range region]}]
-  (debugf "authorize %s %s %s" sg-name port ip-range)
+  [compute sg-id permissions]
+  {:pre [sg-id permissions]}
+  (debugf "authorize %s %s" sg-id permissions)
   (try
     (pallet-ec2/execute
      compute
      ec2/authorize-security-group-ingress-map
      {:group-id sg-id
-      :ip-permissions [{:from-port port
-                        :to-port port
-                        :ip-protocol (name protocol)
-                        :ip-ranges [ip-range]}]})
+      :ip-permissions permissions})
     (catch Exception e
       (let [c (or (root-cause e) e)]
         (if (and (instance? com.amazonaws.AmazonServiceException c)
@@ -59,38 +62,80 @@ namespace."
                     "InvalidPermission.Duplicate"))
           (debugf "Already authorized")
           (throw (ex-info (format
-                           "Failed to configure net-rules: %s %s"
+                           "Failed to authorize net-rules permissions: %s %s"
                            (type c)
                            (try (bean c) (catch Exception _)))
                           {:type (type c)
                            :bean (try (bean c) (catch Exception _))}
                           e)))))))
 
-(defn authorize-targets
+(defn revoke
+  "Revoke permissions"
+  [compute sg-id permissions]
+  {:pre [sg-id permissions]}
+  (debugf "revoke %s %s" sg-id permissions)
+  (try
+    (pallet-ec2/execute
+     compute
+     ec2/revoke-security-group-ingress-map
+     {:group-id sg-id
+      :ip-permissions permissions})
+    (catch Exception e
+      (let [c (or (root-cause e) e)]
+        (throw (ex-info (format
+                         "Failed to revoke net-rules permissions: %s %s"
+                         (type c)
+                         (try (bean c) (catch Exception _)))
+                        {:type (type c)
+                         :bean (try (bean c) (catch Exception _))}
+                        e))))))
+
+(defn ip-permissions
+  "Convert a spec to an EC2 Ip permissions map."
+  [{:keys [port protocol ip-range]}]
+  {:from-port port
+   :to-port port
+   :ip-protocol (name protocol)
+   :ip-ranges [ip-range]})
+
+(defn target-cidr
+  "Convert a target map to a cidr string"
+  [target-map]
+  (str (or (node/private-ip (:node target-map))
+           (node/primary-ip (:node target-map)))
+       "/32"))
+
+(defn target-permissions
   "Authorize a port to a sequence of nodes"
-  [compute sg-id region {:keys [port protocol]} targets]
-  (debugf "authorize-targets %s %s %s" sg-id port (count targets))
-  (doseq [target-map targets
-          :let [ip-range (str (or (node/private-ip (:node target-map))
-                                  (node/primary-ip (:node target-map)))
-                              "/32")]]
-    (try
-      (let [r (pallet-ec2/execute
-               compute
-               ec2/authorize-security-group-ingress-map
-               {:group-id sg-id
-                :ip-permissions [{:from-port port
-                                  :to-port port
-                                  :ip-protocol (name protocol)
-                                  :ip-ranges [ip-range]}]})]
-        (debugf "authorize-targets %s" r))
-      (catch Exception e
-        (let [c (root-cause e)]
-          (if (and (instance? com.amazonaws.AmazonServiceException c)
-                   (= (.getErrorCode ^com.amazonaws.AmazonServiceException c)
-                      "InvalidPermission.Duplicate"))
-            (debugf "Already authorized")
-            (throw (ex-info "Failed to configure net-rules" {} e))))))))
+  [{:keys [port protocol] :as permission} targets]
+  (debugf "target-permissions %s %s" port (count targets))
+  (vec
+   (for [target-map targets
+         :let [ip-range (target-cidr target-map)]]
+     (ip-permissions (assoc permission :ip-range ip-range)))))
+
+(defn permission->ip-permission
+  "Return a sequence of ip permissions"
+  [{:keys [cidr group role port protocol] :as permission}]
+  (cond
+    cidr [(ip-permissions
+           (assoc (select-keys permission [:port :protocol]) :ip-range cidr))]
+    group (target-permissions permission (targets-in-group group))
+    role (target-permissions permission (targets-with-role role))))
+
+(def ip-perm-keys [:to-port :from-port :ip-protocol :ip-ranges])
+
+(defn matching-permission
+  "Predicate for a target permission already having been set.  Returns
+  the matching permission."
+  [ip-permissions permission]
+  (debugf "matching-permission %s %s" ip-permissions permission)
+  (some (fn [ip-permission]
+          (and
+           (= (select-keys ip-permission ip-perm-keys)
+              (select-keys permission ip-perm-keys))
+           ip-permission))
+        ip-permissions))
 
 (defmethod configure-net-rules :pallet-ec2
   [_ permissions]
@@ -98,15 +143,25 @@ namespace."
         sg-name (sg-name (group-name))
         region (target-region)
         vpc-id (:vpc-id (.info (:node (target))))
-        sg-id (sg-id-for compute vpc-id sg-name)]
-    (debugf "configure-net-rules %s vpc-id %s sg-name %s sg-id %s"
-            (pr-str permissions) vpc-id sg-name sg-id)
-    (doseq [{:keys [cidr group role port protocol] :as permission} permissions]
-      (cond
-       cidr (authorize compute sg-id
-                       port :protocol protocol
-                       :ip-range cidr :region region)
-       group (authorize-targets compute sg-id region permission
-                                (targets-in-group group))
-       role (authorize-targets compute sg-id region permission
-                               (targets-with-role role))))))
+
+        {:keys [group-id ip-permissions]}
+        (sg-info compute vpc-id sg-name)
+
+        target-perms (mapcat permission->ip-permission permissions)
+        part (reduce
+              (fn [[ip-permissions add-permissions] permission]
+                (if-let [p (matching-permission ip-permissions permission)]
+                  [(seq (remove #(= p %) ip-permissions))
+                   add-permissions]
+                  [ip-permissions
+                   (conj add-permissions permission)]))
+              [ip-permissions nil]
+              target-perms)]
+    (debugf "configure-net-rules vpc-id: %s sg-name: %s sg-id: %s"
+            vpc-id sg-name group-id)
+    (tracef "configure-net-rules %s" (pr-str permissions))
+    (tracef "configure-net-rules %s" (pr-str part))
+    (when-let [permissions (second part)]
+      (authorize compute group-id permissions))
+    (when-let [permissions (first part)]
+      (revoke compute group-id permissions))))
