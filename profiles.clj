@@ -4,7 +4,7 @@
                  [org.slf4j/jcl-over-slf4j "1.7.5"]]}
  :dev
  {:dependencies [[org.clojure/clojure "1.5.1"]
-                 [com.palletops/pallet "0.8.0-RC.9" :classifier "tests"]
+                 [com.palletops/pallet "0.8.4" :classifier "tests"]
                  [com.palletops/crates "0.1.1"]
                  [ch.qos.logback/logback-classic "1.0.9"]]
   :plugins [[com.palletops/pallet-lein "0.8.0-alpha.1"]
