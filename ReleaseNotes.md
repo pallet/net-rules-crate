@@ -1,3 +1,17 @@
+## 0.8.0-alpha.7
+
+- Remove security groups on group removal
+  When a pallet group is removed, ensure the pallet-ec2 created security 
+  group is removed.
+
+- Update to pallet 0.8.4
+
+- Make pallet EC2 security groups exhaustive
+  Removes any rules that aren't defined in the net-rules settings.
+
+- Ensure exceptions are propagated
+  Exceptions were not being re-thrown correctly.
+
 ## 0.8.0-alpha.6
 
 - Ignore duplicate rule exceptions in pallet-ec2
