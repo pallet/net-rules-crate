@@ -8,7 +8,8 @@ namespace."
    [com.palletops.awaze.ec2 :as ec2]
    [pallet.compute.ec2 :as pallet-ec2]
    [pallet.crate :refer [group-name targets-in-group targets-with-role target]]
-   [pallet.crate.net-rules :refer [configure-net-rules install-net-rules]]
+   [pallet.crate.net-rules
+    :refer [configure-net-rules install-net-rules remove-group-net-rules]]
    [pallet.node :as node]))
 
 (defmethod install-net-rules :pallet-ec2
@@ -36,13 +37,26 @@ namespace."
                                       (= vpc-id (:vpc-id %))
                                       (= sg-name (:group-name %))))
                             first)]
-    (debugf "sg-id-for %s %s %s" vpc-id sg-name (pr-str security-groups))
-    {:group-id (:group-id matching-group)
-     :ip-permissions
-     (->> (:ip-permissions matching-group)
-          (filter :ip-ranges)
-          (mapv #(select-keys
-                 % [:to-port :from-port :ip-protocol :ip-ranges])))}))
+    (debugf "sg-info %s %s %s" vpc-id sg-name (pr-str security-groups))
+    (if matching-group
+      {:group-id (:group-id matching-group)
+       :ip-permissions
+       (->> (:ip-permissions matching-group)
+            (filter :ip-ranges)
+            (mapv #(select-keys
+                    % [:to-port :from-port :ip-protocol :ip-ranges])))})))
+
+(defn subnet-info [compute subnet-id]
+  (let [filters [{:name "subnet-id" :values [subnet-id]}]
+        {:keys [subnets] :as sns}
+        (pallet-ec2/execute
+         compute ec2/describe-subnets-map {:filters filters})
+        matching-sn (->> subnets
+                         (filter #(= subnet-id (:subnet-id %)))
+                         first)]
+    (debugf "subnet-info %s %s %s %s"
+            subnet-id (pr-str sns) (pr-str subnets) matching-sn)
+    matching-sn))
 
 (defn authorize
   "Authorize a cidr"
@@ -89,6 +103,60 @@ namespace."
                         {:type (type c)
                          :bean (try (bean c) (catch Exception _))}
                         e))))))
+
+(defn remove-sg
+  "Remove security group"
+  [compute sg-id]
+  {:pre [sg-id]}
+  (debugf "remove-sg %s" sg-id)
+  (try
+    (pallet-ec2/execute compute ec2/delete-security-group-map {:group-id sg-id})
+    (catch Exception e
+      (let [c (or (root-cause e) e)
+            dependents (and
+                        (instance? com.amazonaws.AmazonServiceException c)
+                        (= (.getErrorCode
+                            ^com.amazonaws.AmazonServiceException c)
+                           "DependencyViolation"))
+            b (try (bean c) (catch Exception _))]
+        (throw (ex-info (format
+                         "Failed to remove security group: %s %s" (type c) b)
+                        {:type (type c)
+                         :bean b
+                         :dependency-violation dependents}
+                        e))))))
+
+(defn remove-sg-retry-on-dependents
+  "Remove security group, retrying if the group is still listed as
+  having dependents."
+  [compute sg-id {:keys [max-retries standoff]
+                  :or {max-retries 5 standoff 10}}]
+  {:pre [sg-id]}
+  (debugf "remove-sg-retry-on-dependents %ss, %s retries" standoff max-retries)
+  (letfn [(try-remove []
+            (try
+              (remove-sg compute sg-id)
+              (catch Exception e
+                (debugf
+                 "remove-sg-retry-on-dependents exception data %s" (ex-data e))
+                (if (:dependency-violation (ex-data e))
+                  {::retry true
+                   ::exception e}
+                  {::exception e}))))]
+    (loop [retries max-retries
+           standoff standoff]
+      (let [r (try-remove)]
+        (debugf "remove-sg-retry-on-dependents try-remove %s", r)
+        (cond
+          (::retry r) (if (pos? retries)
+                        (do
+                          (debugf "Waiting %s on %s"
+                                  standoff (::exception r))
+                          (Thread/sleep (* standoff 1000))
+                          (recur (dec retries) (* 1.5 standoff)))
+                        (throw (::exception r)))
+          (::exception r) (throw (::exception r))
+          :else r)))))
 
 (defn ip-permissions
   "Convert a spec to an EC2 Ip permissions map."
@@ -141,7 +209,6 @@ namespace."
   [_ permissions]
   (let [compute (compute-service)
         sg-name (sg-name (group-name))
-        region (target-region)
         vpc-id (:vpc-id (.info (:node (target))))
 
         {:keys [group-id ip-permissions]}
@@ -165,3 +232,16 @@ namespace."
       (authorize compute group-id permissions))
     (when-let [permissions (first part)]
       (revoke compute group-id permissions))))
+
+(defmethod remove-group-net-rules :pallet-ec2
+  [_ compute]
+  (let [sg-name (str "pallet-" (name (:group-name (target))))
+        subnet (if-let [subnet-id (-> (target)
+                                      :provider :pallet-ec2 :subnet-id)]
+                 (subnet-info compute subnet-id))
+        vpc-id (:vpc-id subnet)
+        {:keys [group-id] :as sg} (sg-info compute vpc-id sg-name)]
+    (debugf "remove-group-net-rules subnet: %s vpc-id: %s sg: %s"
+            subnet vpc-id sg)
+    (when group-id
+      (remove-sg-retry-on-dependents compute group-id {}))))

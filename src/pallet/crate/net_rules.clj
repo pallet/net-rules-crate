@@ -72,13 +72,30 @@
 
 (defmethod configure-net-rules :default
   [impl settings]
-  (warnf (str "No net-rules net-rules applied.")))
+  (warnf (str "No net-rules configuration applied.")))
 
 (defplan configure
   "Write net-rules configuration for a node."
   [{:keys [instance-id] :as options}]
   (let [{:keys [implementation allow]} (get-settings facility options)]
     (configure-net-rules implementation allow)))
+
+;;; # Remove
+;;; Remove net rules
+(defmulti remove-group-net-rules
+  (fn [impl compute] impl))
+
+(defmethod remove-group-net-rules :default
+  [impl compute]
+  (warnf (str "No net-rules group removed.")))
+
+(defplan remove-group
+  "Remove net-rules configuration for a group."
+  [{:keys [instance-id] :as options}]
+  (debugf "remove-group %s" (target))
+  (let [compute (:compute (target))
+        implementation (-> compute service-properties :provider)]
+    (remove-group-net-rules implementation compute)))
 
 ;;; # Network rules
 (def PermissionBase
@@ -132,5 +149,7 @@
             :install (plan-fn
                       (install {:instance-id instance-id}))
             :configure (plan-fn
-                           (configure {:instance-id instance-id}))}
+                        (configure {:instance-id instance-id}))
+            :destroy-group (plan-fn
+                            (remove-group {:instance-id instance-id}))}
    :default-phases [:install :configure]))
