@@ -150,7 +150,8 @@
    :phases {:settings (plan-fn
                        (pallet.crate.net-rules/settings settings))
             :install (plan-fn
-                      (install {:instance-id instance-id}))
+                      (install {:instance-id instance-id})
+                      (configure {:instance-id instance-id}))
             :configure (plan-fn
                         (configure {:instance-id instance-id}))
             :destroy-group (plan-fn
