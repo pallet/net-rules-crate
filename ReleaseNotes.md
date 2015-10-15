@@ -1,3 +1,13 @@
+## 0.8.0-alpha.8
+
+- Correctly reconcile existing, target permissions
+  Reconciliation was incorrect when multiple ip ranges were already in place
+  for a protocol/port.
+
+- Configure network rules on install
+
+- Add extra precondtions for permit-source and permit-role
+
 ## 0.8.0-alpha.7
 
 - Remove security groups on group removal
