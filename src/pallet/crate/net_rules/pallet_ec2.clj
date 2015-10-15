@@ -3,13 +3,14 @@
 a dependency on pallet-aws 0.2.0 or greater to use this
 namespace."
   (:require
+   [clojure.set :as set]
    [clojure.stacktrace :refer [root-cause]]
    [clojure.tools.logging :refer [debugf tracef]]
    [com.palletops.awaze.ec2 :as ec2]
    [pallet.compute.ec2 :as pallet-ec2]
-   [pallet.crate :refer [group-name targets-in-group targets-with-role target]]
    [pallet.crate.net-rules
     :refer [configure-net-rules install-net-rules remove-group-net-rules]]
+   [pallet.crate :refer [group-name targets-in-group targets-with-role target]]
    [pallet.node :as node]))
 
 (defmethod install-net-rules :pallet-ec2
@@ -87,7 +88,7 @@ namespace."
   "Revoke permissions"
   [compute sg-id permissions]
   {:pre [sg-id permissions]}
-  (debugf "revoke %s %s" sg-id permissions)
+  (debugf "revoke %s %s" sg-id (vec permissions))
   (try
     (pallet-ec2/execute
      compute
@@ -191,19 +192,47 @@ namespace."
     group (target-permissions permission (targets-in-group group))
     role (target-permissions permission (targets-with-role role))))
 
-(def ip-perm-keys [:to-port :from-port :ip-protocol :ip-ranges])
+(def ip-perm-keys [:to-port :from-port :ip-protocol])
 
 (defn matching-permission
   "Predicate for a target permission already having been set.  Returns
   the matching permission."
   [ip-permissions permission]
-  (debugf "matching-permission %s %s" ip-permissions permission)
-  (some (fn [ip-permission]
-          (and
-           (= (select-keys ip-permission ip-perm-keys)
-              (select-keys permission ip-perm-keys))
-           ip-permission))
-        ip-permissions))
+  (debugf "matching-permission %s %s" (vec ip-permissions) permission)
+  (let [res (some
+             (fn [ip-permission]
+               (and
+                (= (select-keys ip-permission ip-perm-keys)
+                   (select-keys permission ip-perm-keys))
+                (let [range (first (:ip-ranges permission))]
+                  (and
+                   (some #(= range %) (:ip-ranges ip-permission))
+                   [ip-permission
+                    (update-in ip-permission [:ip-ranges]
+                               (fn [ranges]
+                                 (vec (remove #(= range %) ranges))))]))))
+             ip-permissions)]
+    (tracef "matching-permission result %s" res)
+    res))
+
+(defn classify-rules
+  "Classify rules into those that match the target permissions, those
+  that need removing, and those that need adding."
+  [ip-permissions target-perms]
+  (let [part (reduce
+              (fn [[ip-permissions add-permissions] permission]
+                (if-let [[p new-p] (matching-permission
+                                    ip-permissions permission)]
+                  [(->> ip-permissions
+                        (map #(if (= p %) new-p %))
+                        (filter #(seq (:ip-ranges %))))
+                   add-permissions]
+                  [ip-permissions
+                   (conj add-permissions permission)]))
+              [ip-permissions nil]
+              target-perms)]
+    (tracef "configure-net-rules %s" (pr-str part))
+    part))
 
 (defmethod configure-net-rules :pallet-ec2
   [_ permissions]
@@ -215,22 +244,14 @@ namespace."
         (sg-info compute vpc-id sg-name)
 
         target-perms (mapcat permission->ip-permission permissions)
-        part (reduce
-              (fn [[ip-permissions add-permissions] permission]
-                (if-let [p (matching-permission ip-permissions permission)]
-                  [(seq (remove #(= p %) ip-permissions))
-                   add-permissions]
-                  [ip-permissions
-                   (conj add-permissions permission)]))
-              [ip-permissions nil]
-              target-perms)]
+        part (classify-rules ip-permissions target-perms)]
     (debugf "configure-net-rules vpc-id: %s sg-name: %s sg-id: %s"
             vpc-id sg-name group-id)
     (tracef "configure-net-rules %s" (pr-str permissions))
     (tracef "configure-net-rules %s" (pr-str part))
-    (when-let [permissions (second part)]
+    (when-let [permissions (seq (second part))]
       (authorize compute group-id permissions))
-    (when-let [permissions (first part)]
+    (when-let [permissions (seq (first part))]
       (revoke compute group-id permissions))))
 
 (defmethod remove-group-net-rules :pallet-ec2

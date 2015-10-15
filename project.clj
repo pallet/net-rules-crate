@@ -1,4 +1,4 @@
-(defproject com.palletops/net-rules-crate "0.8.0-alpha.7"
+(defproject com.palletops/net-rules-crate "0.8.0-alpha.8"
   :description "Crate for controlling network port access"
   :url "http://github.com/pallet/net-rules-crate"
   :license {:name "Eclipse Public License"

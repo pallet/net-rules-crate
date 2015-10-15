@@ -128,14 +128,17 @@
 (defplan permit-role
   "Grant a role permission to access a port"
   [role port {:keys [instance-id protocol] :or {protocol :tcp} :as options}]
-  {:pre [(keyword? role) (or (keyword? protocol) (number? protocol))]}
+  {:pre [(keyword? role) (or (keyword? protocol) (number? protocol))
+         (or (nil? options) (map? options))]}
+  (warnf "permit-role permissions %s" (select-keys options [:instance-id]))
   (permit {:role role :port port :protocol protocol}
           (select-keys options [:instance-id])))
 
 (defplan permit-source
   "Grant an IP source range permission to access a port"
   [cidr port {:keys [instance-id protocol] :or {protocol :tcp} :as options}]
-  {:pre [(string? cidr) (or (keyword? protocol) (number? protocol))]}
+  {:pre [(string? cidr) (or (keyword? protocol) (number? protocol))
+         (or (nil? options) (map? options))]}
   (permit {:cidr cidr :port port :protocol protocol}
           (select-keys options [:instance-id])))
 
@@ -147,7 +150,8 @@
    :phases {:settings (plan-fn
                        (pallet.crate.net-rules/settings settings))
             :install (plan-fn
-                      (install {:instance-id instance-id}))
+                      (install {:instance-id instance-id})
+                      (configure {:instance-id instance-id}))
             :configure (plan-fn
                         (configure {:instance-id instance-id}))
             :destroy-group (plan-fn
