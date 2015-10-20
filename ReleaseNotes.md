@@ -1,3 +1,9 @@
+## 0.8.0-alpha.9
+
+- Don't remove group when no compute-service
+  When the target does not specify a compute service, do not try removing 
+  the network rules.
+
 ## 0.8.0-alpha.8
 
 - Correctly reconcile existing, target permissions

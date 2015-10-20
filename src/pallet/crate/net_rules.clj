@@ -93,9 +93,9 @@
   "Remove net-rules configuration for a group."
   [{:keys [instance-id] :as options}]
   (debugf "remove-group %s" (target))
-  (let [compute (:compute (target))
-        implementation (-> compute service-properties :provider)]
-    (remove-group-net-rules implementation compute)))
+  (when-let [compute (:compute (target))]
+    (let [implementation (-> compute service-properties :provider)]
+      (remove-group-net-rules implementation compute))))
 
 ;;; # Network rules
 (def PermissionBase
