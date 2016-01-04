@@ -1,3 +1,9 @@
+## 0.8.0-beta.1
+
+- Filter duplicate permissions
+  When setting permissions in the pallet-ec2 backend, ensure duplicate 
+  permissions are removed.
+
 ## 0.8.0-alpha.9
 
 - Don't remove group when no compute-service
