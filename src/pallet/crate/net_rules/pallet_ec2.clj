@@ -69,7 +69,7 @@ namespace."
      compute
      ec2/authorize-security-group-ingress-map
      {:group-id sg-id
-      :ip-permissions permissions})
+      :ip-permissions (vec (distinct permissions))})
     (catch Exception e
       (let [c (or (root-cause e) e)]
         (if (and (instance? com.amazonaws.AmazonServiceException c)
@@ -94,7 +94,7 @@ namespace."
      compute
      ec2/revoke-security-group-ingress-map
      {:group-id sg-id
-      :ip-permissions permissions})
+      :ip-permissions (vec (distinct permissions))})
     (catch Exception e
       (let [c (or (root-cause e) e)]
         (throw (ex-info (format
